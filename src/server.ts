@@ -87,7 +87,7 @@ export function createMcpServer(options: CreateMcpServerOptions = {}): {
   const client = new DdbClient(cache, circuitBreaker, rateLimiter);
 
   const server = new McpServer({
-    name: "dndbeyond-mcp",
+    name: "ddb-mcp",
     version: "0.1.0",
   });
 
@@ -163,543 +163,543 @@ export function createMcpServer(options: CreateMcpServerOptions = {}): {
   );
 
   if (modeAllows(mode, "session")) {
-  // Register character write tools
-  server.tool(
-    "update_hp",
-    "Update a character's hit points (positive = heal, negative = damage). Optionally set temporary HP.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      hpChange: z
-        .coerce.number()
-        .describe("HP change (positive for healing, negative for damage)"),
-      tempHp: z
-        .coerce.number()
-        .optional()
-        .describe("Set temporary hit points to this value"),
-    },
-    MUTATING,
-    async (params) =>
-      updateHp(client, {
-        characterId: params.characterId,
-        hpChange: params.hpChange,
-        tempHp: params.tempHp,
-      })
-  );
+    // Register character write tools
+    server.tool(
+      "update_hp",
+      "Update a character's hit points (positive = heal, negative = damage). Optionally set temporary HP.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        hpChange: z
+          .coerce.number()
+          .describe("HP change (positive for healing, negative for damage)"),
+        tempHp: z
+          .coerce.number()
+          .optional()
+          .describe("Set temporary hit points to this value"),
+      },
+      MUTATING,
+      async (params) =>
+        updateHp(client, {
+          characterId: params.characterId,
+          hpChange: params.hpChange,
+          tempHp: params.tempHp,
+        })
+    );
 
-  server.tool(
-    "set_inspiration",
-    "Grant or remove inspiration on a character",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      inspiration: z.boolean().describe("true to grant inspiration, false to remove it"),
-    },
-    MUTATING,
-    async (params) =>
-      setInspiration(client, {
-        characterId: params.characterId,
-        inspiration: params.inspiration,
-      })
-  );
+    server.tool(
+      "set_inspiration",
+      "Grant or remove inspiration on a character",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        inspiration: z.boolean().describe("true to grant inspiration, false to remove it"),
+      },
+      MUTATING,
+      async (params) =>
+        setInspiration(client, {
+          characterId: params.characterId,
+          inspiration: params.inspiration,
+        })
+    );
 
-  server.tool(
-    "add_condition",
-    "Apply a condition to a character. Condition IDs: 1=Blinded, 2=Charmed, 3=Deafened, 4=Frightened, 5=Grappled, 6=Incapacitated, 7=Invisible, 8=Paralyzed, 9=Petrified, 10=Poisoned, 11=Prone, 12=Restrained, 13=Stunned, 14=Unconscious, 15=Exhaustion (use level 1-6)",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      conditionId: z.coerce.number().describe("Condition ID (1-15)"),
-      level: z.coerce.number().optional().describe("Exhaustion level (1-6). Only used for Exhaustion (conditionId=15)."),
-    },
-    MUTATING,
-    async (params) =>
-      addCondition(client, {
-        characterId: params.characterId,
-        conditionId: params.conditionId,
-        level: params.level,
-      })
-  );
+    server.tool(
+      "add_condition",
+      "Apply a condition to a character. Condition IDs: 1=Blinded, 2=Charmed, 3=Deafened, 4=Frightened, 5=Grappled, 6=Incapacitated, 7=Invisible, 8=Paralyzed, 9=Petrified, 10=Poisoned, 11=Prone, 12=Restrained, 13=Stunned, 14=Unconscious, 15=Exhaustion (use level 1-6)",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        conditionId: z.coerce.number().describe("Condition ID (1-15)"),
+        level: z.coerce.number().optional().describe("Exhaustion level (1-6). Only used for Exhaustion (conditionId=15)."),
+      },
+      MUTATING,
+      async (params) =>
+        addCondition(client, {
+          characterId: params.characterId,
+          conditionId: params.conditionId,
+          level: params.level,
+        })
+    );
 
-  server.tool(
-    "remove_condition",
-    "Remove a condition from a character. Condition IDs: 1=Blinded, 2=Charmed, 3=Deafened, 4=Frightened, 5=Grappled, 6=Incapacitated, 7=Invisible, 8=Paralyzed, 9=Petrified, 10=Poisoned, 11=Prone, 12=Restrained, 13=Stunned, 14=Unconscious, 15=Exhaustion",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      conditionId: z.coerce.number().describe("Condition ID (1-15)"),
-    },
-    MUTATING,
-    async (params) =>
-      removeCondition(client, {
-        characterId: params.characterId,
-        conditionId: params.conditionId,
-      })
-  );
+    server.tool(
+      "remove_condition",
+      "Remove a condition from a character. Condition IDs: 1=Blinded, 2=Charmed, 3=Deafened, 4=Frightened, 5=Grappled, 6=Incapacitated, 7=Invisible, 8=Paralyzed, 9=Petrified, 10=Poisoned, 11=Prone, 12=Restrained, 13=Stunned, 14=Unconscious, 15=Exhaustion",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        conditionId: z.coerce.number().describe("Condition ID (1-15)"),
+      },
+      MUTATING,
+      async (params) =>
+        removeCondition(client, {
+          characterId: params.characterId,
+          conditionId: params.conditionId,
+        })
+    );
 
-  server.tool(
-    "update_spell_slots",
-    "Update used spell slots for a specific spell level",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      level: z.coerce.number().describe("Spell slot level (1-9)"),
-      used: z.coerce.number().describe("Number of slots used at this level"),
-    },
-    MUTATING,
-    async (params) =>
-      updateSpellSlots(client, {
-        characterId: params.characterId,
-        level: params.level,
-        used: params.used,
-      })
-  );
+    server.tool(
+      "update_spell_slots",
+      "Update used spell slots for a specific spell level",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        level: z.coerce.number().describe("Spell slot level (1-9)"),
+        used: z.coerce.number().describe("Number of slots used at this level"),
+      },
+      MUTATING,
+      async (params) =>
+        updateSpellSlots(client, {
+          characterId: params.characterId,
+          level: params.level,
+          used: params.used,
+        })
+    );
 
-  server.tool(
-    "update_death_saves",
-    "Update death saving throw successes or failures",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      type: z
-        .enum(["success", "failure"])
-        .describe("Type of death save: 'success' or 'failure'"),
-      count: z.coerce.number().describe("Number of successes or failures (0-3)"),
-    },
-    MUTATING,
-    async (params) =>
-      updateDeathSaves(client, {
-        characterId: params.characterId,
-        type: params.type,
-        count: params.count,
-      })
-  );
+    server.tool(
+      "update_death_saves",
+      "Update death saving throw successes or failures",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        type: z
+          .enum(["success", "failure"])
+          .describe("Type of death save: 'success' or 'failure'"),
+        count: z.coerce.number().describe("Number of successes or failures (0-3)"),
+      },
+      MUTATING,
+      async (params) =>
+        updateDeathSaves(client, {
+          characterId: params.characterId,
+          type: params.type,
+          count: params.count,
+        })
+    );
 
-  server.tool(
-    "update_currency",
-    "Update a character's currency. Use 'delta' to add/spend (e.g., delta: 50 to add, delta: -10 to spend) or 'amount' to set an absolute value.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      currency: z
-        .enum(["cp", "sp", "ep", "gp", "pp"])
-        .describe("Currency type: cp, sp, ep, gp, or pp"),
-      amount: z.coerce.number().optional().describe("Set currency to this exact amount"),
-      delta: z.coerce.number().optional().describe("Add (positive) or spend (negative) this many coins"),
-    },
-    MUTATING,
-    async (params) =>
-      updateCurrency(client, {
-        characterId: params.characterId,
-        currency: params.currency,
-        amount: params.amount,
-        delta: params.delta,
-      })
-  );
+    server.tool(
+      "update_currency",
+      "Update a character's currency. Use 'delta' to add/spend (e.g., delta: 50 to add, delta: -10 to spend) or 'amount' to set an absolute value.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        currency: z
+          .enum(["cp", "sp", "ep", "gp", "pp"])
+          .describe("Currency type: cp, sp, ep, gp, or pp"),
+        amount: z.coerce.number().optional().describe("Set currency to this exact amount"),
+        delta: z.coerce.number().optional().describe("Add (positive) or spend (negative) this many coins"),
+      },
+      MUTATING,
+      async (params) =>
+        updateCurrency(client, {
+          characterId: params.characterId,
+          currency: params.currency,
+          amount: params.amount,
+          delta: params.delta,
+        })
+    );
 
-  server.tool(
-    "use_ability",
-    "Update uses of a limited-use ability (e.g., Favored Enemy, Dreadful Strike, Ki Points). Increments by 1 if 'uses' is not specified, or set exact count with 'uses'. Set uses to 0 to reset.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      abilityName: z
-        .string()
-        .describe(
-          "Name of the ability (e.g., 'Hunter's Mark', 'Dreadful Strike')"
-        ),
-      uses: z
-        .coerce.number()
-        .optional()
-        .describe(
-          "Set exact number of uses expended. If omitted, increments current uses by 1."
-        ),
-    },
-    MUTATING,
-    async (params) =>
-      useAbility(client, {
-        characterId: params.characterId,
-        abilityName: params.abilityName,
-        uses: params.uses,
-      })
-  );
+    server.tool(
+      "use_ability",
+      "Update uses of a limited-use ability (e.g., Favored Enemy, Dreadful Strike, Ki Points). Increments by 1 if 'uses' is not specified, or set exact count with 'uses'. Set uses to 0 to reset.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        abilityName: z
+          .string()
+          .describe(
+            "Name of the ability (e.g., 'Hunter's Mark', 'Dreadful Strike')"
+          ),
+        uses: z
+          .coerce.number()
+          .optional()
+          .describe(
+            "Set exact number of uses expended. If omitted, increments current uses by 1."
+          ),
+      },
+      MUTATING,
+      async (params) =>
+        useAbility(client, {
+          characterId: params.characterId,
+          abilityName: params.abilityName,
+          uses: params.uses,
+        })
+    );
 
-  server.tool(
-    "update_pact_magic",
-    "Update used pact magic slots for a Warlock",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      used: z.coerce.number().describe("Number of pact magic slots used"),
-    },
-    MUTATING,
-    async (params) =>
-      updatePactMagic(client, {
-        characterId: params.characterId,
-        used: params.used,
-      })
-  );
+    server.tool(
+      "update_pact_magic",
+      "Update used pact magic slots for a Warlock",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        used: z.coerce.number().describe("Number of pact magic slots used"),
+      },
+      MUTATING,
+      async (params) =>
+        updatePactMagic(client, {
+          characterId: params.characterId,
+          used: params.used,
+        })
+    );
 
-  server.tool(
-    "long_rest",
-    "Perform a long rest: restores HP, spell slots, pact magic, limited-use abilities, hit dice, and death saves (server-side)",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-    },
-    MUTATING,
-    async (params) =>
-      longRest(client, {
-        characterId: params.characterId,
-      })
-  );
+    server.tool(
+      "long_rest",
+      "Perform a long rest: restores HP, spell slots, pact magic, limited-use abilities, hit dice, and death saves (server-side)",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+      },
+      MUTATING,
+      async (params) =>
+        longRest(client, {
+          characterId: params.characterId,
+        })
+    );
 
-  server.tool(
-    "short_rest",
-    "Perform a short rest: resets pact magic, short-rest abilities, and handles hit dice (server-side)",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-    },
-    MUTATING,
-    async (params) =>
-      shortRest(client, {
-        characterId: params.characterId,
-      })
-  );
+    server.tool(
+      "short_rest",
+      "Perform a short rest: resets pact magic, short-rest abilities, and handles hit dice (server-side)",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+      },
+      MUTATING,
+      async (params) =>
+        shortRest(client, {
+          characterId: params.characterId,
+        })
+    );
 
-  server.tool(
-    "cast_spell",
-    "Cast a spell and automatically decrement the appropriate spell slot or pact magic slot. Supports upcasting.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      spellName: z.string().describe("Name of the spell to cast"),
-      level: z
-        .coerce.number()
-        .optional()
-        .describe("Cast at this level (for upcasting). Defaults to spell's base level."),
-    },
-    MUTATING,
-    async (params) =>
-      castSpell(client, {
-        characterId: params.characterId,
-        spellName: params.spellName,
-        level: params.level,
-      })
-  );
+    server.tool(
+      "cast_spell",
+      "Cast a spell and automatically decrement the appropriate spell slot or pact magic slot. Supports upcasting.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        spellName: z.string().describe("Name of the spell to cast"),
+        level: z
+          .coerce.number()
+          .optional()
+          .describe("Cast at this level (for upcasting). Defaults to spell's base level."),
+      },
+      MUTATING,
+      async (params) =>
+        castSpell(client, {
+          characterId: params.characterId,
+          spellName: params.spellName,
+          level: params.level,
+        })
+    );
 
   }
 
   if (modeAllows(mode, "builder")) {
-  // Register character creation/builder tools
-  server.tool(
-    "create_character",
-    "Create a new D&D Beyond character. Standard build creates a blank character. Quick build creates one with a class and species pre-selected.",
-    {
-      method: z.enum(["standard", "quick"]).describe("Build method: 'standard' (blank) or 'quick' (pre-configured)"),
-      classId: z.coerce.number().optional().describe("Class ID for quick build. Use search_classes to find IDs. 2024 PHB: 2190875=Barbarian, 2190876=Bard, 2190877=Cleric, 2190878=Druid, 2190879=Fighter, 2190880=Monk, 2190881=Paladin, 2190882=Ranger, 2190883=Rogue, 2190884=Sorcerer, 2190885=Warlock, 2190886=Wizard"),
-      entityRaceId: z.coerce.number().optional().describe("Race entity ID for quick build"),
-      entityRaceTypeId: z.coerce.number().optional().describe("Race entity type ID for quick build"),
-    },
-    MUTATING,
-    async (params) =>
-      createCharacter(client, {
-        method: params.method,
-        classId: params.classId,
-        entityRaceId: params.entityRaceId,
-        entityRaceTypeId: params.entityRaceTypeId,
-      })
-  );
+    // Register character creation/builder tools
+    server.tool(
+      "create_character",
+      "Create a new D&D Beyond character. Standard build creates a blank character. Quick build creates one with a class and species pre-selected.",
+      {
+        method: z.enum(["standard", "quick"]).describe("Build method: 'standard' (blank) or 'quick' (pre-configured)"),
+        classId: z.coerce.number().optional().describe("Class ID for quick build. Use search_classes to find IDs. 2024 PHB: 2190875=Barbarian, 2190876=Bard, 2190877=Cleric, 2190878=Druid, 2190879=Fighter, 2190880=Monk, 2190881=Paladin, 2190882=Ranger, 2190883=Rogue, 2190884=Sorcerer, 2190885=Warlock, 2190886=Wizard"),
+        entityRaceId: z.coerce.number().optional().describe("Race entity ID for quick build"),
+        entityRaceTypeId: z.coerce.number().optional().describe("Race entity type ID for quick build"),
+      },
+      MUTATING,
+      async (params) =>
+        createCharacter(client, {
+          method: params.method,
+          classId: params.classId,
+          entityRaceId: params.entityRaceId,
+          entityRaceTypeId: params.entityRaceTypeId,
+        })
+    );
 
-  server.tool(
-    "delete_character",
-    "Permanently delete a character from D&D Beyond. Requires confirm=true and the exact character name. This cannot be undone.",
-    {
-      characterId: z.coerce.number().describe("The character ID to delete"),
-      characterName: z.string().describe("Exact character name; must match the character being deleted"),
-      confirm: z.boolean().describe("Must be true to proceed with deletion"),
-    },
-    DESTRUCTIVE,
-    async (params) =>
-      deleteCharacter(client, {
-        characterId: params.characterId,
-        characterName: params.characterName,
-        confirm: params.confirm,
-      })
-  );
+    server.tool(
+      "delete_character",
+      "Permanently delete a character from D&D Beyond. Requires confirm=true and the exact character name. This cannot be undone.",
+      {
+        characterId: z.coerce.number().describe("The character ID to delete"),
+        characterName: z.string().describe("Exact character name; must match the character being deleted"),
+        confirm: z.boolean().describe("Must be true to proceed with deletion"),
+      },
+      DESTRUCTIVE,
+      async (params) =>
+        deleteCharacter(client, {
+          characterId: params.characterId,
+          characterName: params.characterName,
+          confirm: params.confirm,
+        })
+    );
 
-  server.tool(
-    "add_class",
-    "Add a class to a character at a specified level",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      classId: z.coerce.number().describe("Class ID. Use search_classes to find IDs. 2024 PHB: 2190875=Barbarian, 2190876=Bard, 2190877=Cleric, 2190878=Druid, 2190879=Fighter, 2190880=Monk, 2190881=Paladin, 2190882=Ranger, 2190883=Rogue, 2190884=Sorcerer, 2190885=Warlock, 2190886=Wizard"),
-      level: z.coerce.number().describe("Class level to set"),
-    },
-    MUTATING,
-    async (params) =>
-      addClass(client, {
-        characterId: params.characterId,
-        classId: params.classId,
-        level: params.level,
-      })
-  );
+    server.tool(
+      "add_class",
+      "Add a class to a character at a specified level",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        classId: z.coerce.number().describe("Class ID. Use search_classes to find IDs. 2024 PHB: 2190875=Barbarian, 2190876=Bard, 2190877=Cleric, 2190878=Druid, 2190879=Fighter, 2190880=Monk, 2190881=Paladin, 2190882=Ranger, 2190883=Rogue, 2190884=Sorcerer, 2190885=Warlock, 2190886=Wizard"),
+        level: z.coerce.number().describe("Class level to set"),
+      },
+      MUTATING,
+      async (params) =>
+        addClass(client, {
+          characterId: params.characterId,
+          classId: params.classId,
+          level: params.level,
+        })
+    );
 
-  server.tool(
-    "set_background",
-    "Set a character's background",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      backgroundId: z.coerce.number().describe("Background ID"),
-    },
-    MUTATING,
-    async (params) =>
-      setBackground(client, {
-        characterId: params.characterId,
-        backgroundId: params.backgroundId,
-      })
-  );
+    server.tool(
+      "set_background",
+      "Set a character's background",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        backgroundId: z.coerce.number().describe("Background ID"),
+      },
+      MUTATING,
+      async (params) =>
+        setBackground(client, {
+          characterId: params.characterId,
+          backgroundId: params.backgroundId,
+        })
+    );
 
-  server.tool(
-    "set_background_choice",
-    "Configure a background proficiency or equipment choice",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      type: z.coerce.number().describe("Choice type"),
-      choiceKey: z.string().describe("Choice key identifier"),
-      choiceValue: z.coerce.number().describe("Selected choice value"),
-    },
-    MUTATING,
-    async (params) =>
-      setBackgroundChoice(client, {
-        characterId: params.characterId,
-        type: params.type,
-        choiceKey: params.choiceKey,
-        choiceValue: params.choiceValue,
-      })
-  );
+    server.tool(
+      "set_background_choice",
+      "Configure a background proficiency or equipment choice",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        type: z.coerce.number().describe("Choice type"),
+        choiceKey: z.string().describe("Choice key identifier"),
+        choiceValue: z.coerce.number().describe("Selected choice value"),
+      },
+      MUTATING,
+      async (params) =>
+        setBackgroundChoice(client, {
+          characterId: params.characterId,
+          type: params.type,
+          choiceKey: params.choiceKey,
+          choiceValue: params.choiceValue,
+        })
+    );
 
-  server.tool(
-    "set_class_feature_choice",
-    "Resolve a class feature choice (e.g., warlock invocation, fighting style). Get choice data from the character's choices.class array.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      classId: z.coerce.number().describe("The class definition ID"),
-      classFeatureId: z.coerce.number().describe("The class feature component ID"),
-      classMappingId: z.coerce.number().describe("The character's class mapping ID"),
-      type: z.coerce.number().describe("Choice type from the choice object"),
-      choiceKey: z.string().describe("Choice key identifier from the choice object"),
-      choiceValue: z.coerce.number().describe("Selected option ID"),
-      parentChoiceId: z.coerce.number().optional().describe("Parent choice ID (for nested choices)"),
-    },
-    MUTATING,
-    async (params) =>
-      setClassFeatureChoice(client, {
-        characterId: params.characterId,
-        classId: params.classId,
-        classFeatureId: params.classFeatureId,
-        classMappingId: params.classMappingId,
-        type: params.type,
-        choiceKey: params.choiceKey,
-        choiceValue: params.choiceValue,
-        parentChoiceId: params.parentChoiceId,
-      })
-  );
+    server.tool(
+      "set_class_feature_choice",
+      "Resolve a class feature choice (e.g., warlock invocation, fighting style). Get choice data from the character's choices.class array.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        classId: z.coerce.number().describe("The class definition ID"),
+        classFeatureId: z.coerce.number().describe("The class feature component ID"),
+        classMappingId: z.coerce.number().describe("The character's class mapping ID"),
+        type: z.coerce.number().describe("Choice type from the choice object"),
+        choiceKey: z.string().describe("Choice key identifier from the choice object"),
+        choiceValue: z.coerce.number().describe("Selected option ID"),
+        parentChoiceId: z.coerce.number().optional().describe("Parent choice ID (for nested choices)"),
+      },
+      MUTATING,
+      async (params) =>
+        setClassFeatureChoice(client, {
+          characterId: params.characterId,
+          classId: params.classId,
+          classFeatureId: params.classFeatureId,
+          classMappingId: params.classMappingId,
+          type: params.type,
+          choiceKey: params.choiceKey,
+          choiceValue: params.choiceValue,
+          parentChoiceId: params.parentChoiceId,
+        })
+    );
 
-  server.tool(
-    "set_race_trait_choice",
-    "Resolve a race/species trait choice (e.g., giant ancestry, ability score increase, language). Get choice data from the character's choices.race array.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      racialTraitId: z.coerce.number().describe("The racial trait component ID"),
-      type: z.coerce.number().describe("Choice type from the choice object"),
-      choiceKey: z.string().describe("Choice key identifier from the choice object"),
-      choiceValue: z.coerce.number().describe("Selected option ID"),
-    },
-    MUTATING,
-    async (params) =>
-      setRaceTraitChoice(client, {
-        characterId: params.characterId,
-        racialTraitId: params.racialTraitId,
-        type: params.type,
-        choiceKey: params.choiceKey,
-        choiceValue: params.choiceValue,
-      })
-  );
+    server.tool(
+      "set_race_trait_choice",
+      "Resolve a race/species trait choice (e.g., giant ancestry, ability score increase, language). Get choice data from the character's choices.race array.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        racialTraitId: z.coerce.number().describe("The racial trait component ID"),
+        type: z.coerce.number().describe("Choice type from the choice object"),
+        choiceKey: z.string().describe("Choice key identifier from the choice object"),
+        choiceValue: z.coerce.number().describe("Selected option ID"),
+      },
+      MUTATING,
+      async (params) =>
+        setRaceTraitChoice(client, {
+          characterId: params.characterId,
+          racialTraitId: params.racialTraitId,
+          type: params.type,
+          choiceKey: params.choiceKey,
+          choiceValue: params.choiceValue,
+        })
+    );
 
-  server.tool(
-    "set_feat_choice",
-    "Resolve a feat choice (e.g., ability score increase option on an origin feat). Get choice data from the character's choices.feat array.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      featId: z.coerce.number().describe("The feat component ID"),
-      type: z.coerce.number().describe("Choice type from the choice object"),
-      choiceKey: z.string().describe("Choice key identifier from the choice object"),
-      choiceValue: z.coerce.number().describe("Selected option ID"),
-    },
-    MUTATING,
-    async (params) =>
-      setFeatChoice(client, {
-        characterId: params.characterId,
-        featId: params.featId,
-        type: params.type,
-        choiceKey: params.choiceKey,
-        choiceValue: params.choiceValue,
-      })
-  );
+    server.tool(
+      "set_feat_choice",
+      "Resolve a feat choice (e.g., ability score increase option on an origin feat). Get choice data from the character's choices.feat array.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        featId: z.coerce.number().describe("The feat component ID"),
+        type: z.coerce.number().describe("Choice type from the choice object"),
+        choiceKey: z.string().describe("Choice key identifier from the choice object"),
+        choiceValue: z.coerce.number().describe("Selected option ID"),
+      },
+      MUTATING,
+      async (params) =>
+        setFeatChoice(client, {
+          characterId: params.characterId,
+          featId: params.featId,
+          type: params.type,
+          choiceKey: params.choiceKey,
+          choiceValue: params.choiceValue,
+        })
+    );
 
-  server.tool(
-    "resolve_choices",
-    "Auto-resolve all unresolved builder choices on a character by picking the first available option for each. Handles cascading choices (resolving one may unlock more). Use after create_character to make the character builder-complete.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-    },
-    MUTATING,
-    async (params) =>
-      resolveChoices(client, {
-        characterId: params.characterId,
-      })
-  );
+    server.tool(
+      "resolve_choices",
+      "Auto-resolve all unresolved builder choices on a character by picking the first available option for each. Handles cascading choices (resolving one may unlock more). Use after create_character to make the character builder-complete.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+      },
+      MUTATING,
+      async (params) =>
+        resolveChoices(client, {
+          characterId: params.characterId,
+        })
+    );
 
-  server.tool(
-    "set_species",
-    "Set a character's species (race)",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      entityRaceId: z.coerce.number().describe("Race entity ID"),
-      entityRaceTypeId: z.coerce.number().describe("Race entity type ID"),
-    },
-    MUTATING,
-    async (params) =>
-      setSpecies(client, {
-        characterId: params.characterId,
-        entityRaceId: params.entityRaceId,
-        entityRaceTypeId: params.entityRaceTypeId,
-      })
-  );
+    server.tool(
+      "set_species",
+      "Set a character's species (race)",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        entityRaceId: z.coerce.number().describe("Race entity ID"),
+        entityRaceTypeId: z.coerce.number().describe("Race entity type ID"),
+      },
+      MUTATING,
+      async (params) =>
+        setSpecies(client, {
+          characterId: params.characterId,
+          entityRaceId: params.entityRaceId,
+          entityRaceTypeId: params.entityRaceTypeId,
+        })
+    );
 
-  server.tool(
-    "set_ability_score",
-    "Set an ability score value for a character. statId: 1=STR, 2=DEX, 3=CON, 4=INT, 5=WIS, 6=CHA. type: 1=standard array, 2=rolled, 3=point buy.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      statId: z.coerce.number().describe("Ability stat ID (1=STR, 2=DEX, 3=CON, 4=INT, 5=WIS, 6=CHA)"),
-      type: z.coerce.number().describe("Score type (1=standard array, 2=rolled, 3=point buy)"),
-      value: z.coerce.number().describe("The ability score value"),
-    },
-    MUTATING,
-    async (params) =>
-      setAbilityScore(client, {
-        characterId: params.characterId,
-        statId: params.statId,
-        type: params.type,
-        value: params.value,
-      })
-  );
+    server.tool(
+      "set_ability_score",
+      "Set an ability score value for a character. statId: 1=STR, 2=DEX, 3=CON, 4=INT, 5=WIS, 6=CHA. type: 1=standard array, 2=rolled, 3=point buy.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        statId: z.coerce.number().describe("Ability stat ID (1=STR, 2=DEX, 3=CON, 4=INT, 5=WIS, 6=CHA)"),
+        type: z.coerce.number().describe("Score type (1=standard array, 2=rolled, 3=point buy)"),
+        value: z.coerce.number().describe("The ability score value"),
+      },
+      MUTATING,
+      async (params) =>
+        setAbilityScore(client, {
+          characterId: params.characterId,
+          statId: params.statId,
+          type: params.type,
+          value: params.value,
+        })
+    );
 
-  server.tool(
-    "update_character_name",
-    "Set or change a character's name",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      name: z.string().describe("The new character name"),
-    },
-    MUTATING,
-    async (params) =>
-      updateCharacterName(client, {
-        characterId: params.characterId,
-        name: params.name,
-      })
-  );
+    server.tool(
+      "update_character_name",
+      "Set or change a character's name",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        name: z.string().describe("The new character name"),
+      },
+      MUTATING,
+      async (params) =>
+        updateCharacterName(client, {
+          characterId: params.characterId,
+          name: params.name,
+        })
+    );
 
-  server.tool(
-    "set_class_level",
-    "Set a character's class level. Requires the classMappingId (from the character's classes array, the 'id' field on each class entry).",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      classId: z.coerce.number().describe("The class definition ID"),
-      classMappingId: z.coerce.number().describe("The character's class mapping ID (classes[].id)"),
-      level: z.coerce.number().describe("The level to set (1-20)"),
-    },
-    MUTATING,
-    async (params) =>
-      setClassLevel(client, {
-        characterId: params.characterId,
-        classId: params.classId,
-        classMappingId: params.classMappingId,
-        level: params.level,
-      })
-  );
+    server.tool(
+      "set_class_level",
+      "Set a character's class level. Requires the classMappingId (from the character's classes array, the 'id' field on each class entry).",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        classId: z.coerce.number().describe("The class definition ID"),
+        classMappingId: z.coerce.number().describe("The character's class mapping ID (classes[].id)"),
+        level: z.coerce.number().describe("The level to set (1-20)"),
+      },
+      MUTATING,
+      async (params) =>
+        setClassLevel(client, {
+          characterId: params.characterId,
+          classId: params.classId,
+          classMappingId: params.classMappingId,
+          level: params.level,
+        })
+    );
 
-  server.tool(
-    "set_ability_score_type",
-    "Set the ability score generation method for a character. Must be set before assigning ability scores on standard-build characters.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      abilityScoreType: z.coerce.number().describe("1 = Standard Array, 2 = Rolled, 3 = Point Buy"),
-    },
-    MUTATING,
-    async (params) =>
-      setAbilityScoreType(client, {
-        characterId: params.characterId,
-        abilityScoreType: params.abilityScoreType,
-      })
-  );
+    server.tool(
+      "set_ability_score_type",
+      "Set the ability score generation method for a character. Must be set before assigning ability scores on standard-build characters.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        abilityScoreType: z.coerce.number().describe("1 = Standard Array, 2 = Rolled, 3 = Point Buy"),
+      },
+      MUTATING,
+      async (params) =>
+        setAbilityScoreType(client, {
+          characterId: params.characterId,
+          abilityScoreType: params.abilityScoreType,
+        })
+    );
 
-  server.tool(
-    "set_starting_equipment_type",
-    "Set the starting equipment type for a character during creation",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      startingEquipmentType: z.coerce.number().describe("Starting equipment type (1 = Normal, 3 = Equipment)"),
-    },
-    MUTATING,
-    async (params) =>
-      setStartingEquipmentType(client, {
-        characterId: params.characterId,
-        startingEquipmentType: params.startingEquipmentType,
-      })
-  );
+    server.tool(
+      "set_starting_equipment_type",
+      "Set the starting equipment type for a character during creation",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        startingEquipmentType: z.coerce.number().describe("Starting equipment type (1 = Normal, 3 = Equipment)"),
+      },
+      MUTATING,
+      async (params) =>
+        setStartingEquipmentType(client, {
+          characterId: params.characterId,
+          startingEquipmentType: params.startingEquipmentType,
+        })
+    );
 
-  server.tool(
-    "add_inventory_items",
-    "Add items to a character's inventory. Item entity types: 1782728300 = weapon, 2103445194 = gear/equipment.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      equipment: z.array(z.object({
-        entityId: z.coerce.number().describe("Item entity ID"),
-        entityTypeId: z.coerce.number().describe("Item entity type ID (1782728300=weapon, 2103445194=gear)"),
-        quantity: z.coerce.number().describe("Quantity to add"),
-      })).describe("Array of items to add"),
-    },
-    MUTATING,
-    async (params) =>
-      addInventoryItems(client, {
-        characterId: params.characterId,
-        equipment: params.equipment,
-      })
-  );
+    server.tool(
+      "add_inventory_items",
+      "Add items to a character's inventory. Item entity types: 1782728300 = weapon, 2103445194 = gear/equipment.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        equipment: z.array(z.object({
+          entityId: z.coerce.number().describe("Item entity ID"),
+          entityTypeId: z.coerce.number().describe("Item entity type ID (1782728300=weapon, 2103445194=gear)"),
+          quantity: z.coerce.number().describe("Quantity to add"),
+        })).describe("Array of items to add"),
+      },
+      MUTATING,
+      async (params) =>
+        addInventoryItems(client, {
+          characterId: params.characterId,
+          equipment: params.equipment,
+        })
+    );
 
-  server.tool(
-    "set_gold",
-    "Set the gold amount on a character (used during character creation for starting gold)",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      amount: z.coerce.number().describe("Gold amount to set"),
-    },
-    MUTATING,
-    async (params) =>
-      setGold(client, {
-        characterId: params.characterId,
-        amount: params.amount,
-      })
-  );
+    server.tool(
+      "set_gold",
+      "Set the gold amount on a character (used during character creation for starting gold)",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        amount: z.coerce.number().describe("Gold amount to set"),
+      },
+      MUTATING,
+      async (params) =>
+        setGold(client, {
+          characterId: params.characterId,
+          amount: params.amount,
+        })
+    );
 
-  server.tool(
-    "update_description",
-    "Update a character description field. Fields: alignment (alignmentId number), lifestyle (lifestyleId number), faith, hair, skin, eyes, height, weight, age, gender, personalityTraits, ideals, bonds, flaws, backstory, otherNotes, allies, organizations, enemies.",
-    {
-      characterId: z.coerce.number().describe("The character ID"),
-      field: z.string().describe("Description field name (e.g., 'alignment', 'backstory', 'hair')"),
-      value: z.union([z.string(), z.coerce.number()]).describe("Value to set (string for text fields, number for alignment/lifestyle IDs)"),
-    },
-    MUTATING,
-    async (params) =>
-      updateDescription(client, {
-        characterId: params.characterId,
-        field: params.field,
-        value: params.value,
-      })
-  );
+    server.tool(
+      "update_description",
+      "Update a character description field. Fields: alignment (alignmentId number), lifestyle (lifestyleId number), faith, hair, skin, eyes, height, weight, age, gender, personalityTraits, ideals, bonds, flaws, backstory, otherNotes, allies, organizations, enemies.",
+      {
+        characterId: z.coerce.number().describe("The character ID"),
+        field: z.string().describe("Description field name (e.g., 'alignment', 'backstory', 'hair')"),
+        value: z.union([z.string(), z.coerce.number()]).describe("Value to set (string for text fields, number for alignment/lifestyle IDs)"),
+      },
+      MUTATING,
+      async (params) =>
+        updateDescription(client, {
+          characterId: params.characterId,
+          field: params.field,
+          value: params.value,
+        })
+    );
 
   }
 
@@ -964,7 +964,7 @@ export async function startServer(): Promise<void> {
   await server.connect(transport);
 
   const shutdown = async () => {
-    console.error("dndbeyond-mcp: shutting down...");
+    console.error("ddb-mcp: shutting down...");
     await server.close();
     process.exit(0);
   };
@@ -972,5 +972,5 @@ export async function startServer(): Promise<void> {
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
 
-  console.error(`dndbeyond-mcp: server running (mode=${mode})`);
+  console.error(`ddb-mcp: server running (mode=${mode})`);
 }

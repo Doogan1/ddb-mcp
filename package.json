@@ -1,12 +1,12 @@
 {
-  "name": "dndbeyond-mcp",
+  "name": "ddb-mcp",
   "version": "0.1.0",
   "description": "MCP server for D&D Beyond",
   "license": "MIT",
   "type": "module",
   "main": "build/src/index.js",
   "bin": {
-    "dndbeyond-mcp": "build/src/index.js"
+    "ddb-mcp": "build/src/index.js"
   },
   "files": [
     "build",

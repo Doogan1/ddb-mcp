@@ -1,4 +1,4 @@
-# dndbeyond-mcp
+# ddb-mcp
 
 A TypeScript [MCP](https://modelcontextprotocol.io/) server for D&D Beyond. It gives MCP-compatible clients access to your D&D Beyond characters, campaigns, and reference lookups.
 
@@ -22,13 +22,13 @@ This repository continues that MCP server. It does **not** include personal vaul
 ## Installation
 
 ```bash
-npx dndbeyond-mcp
+npx ddb-mcp
 ```
 
 Or install globally:
 
 ```bash
-npm install -g dndbeyond-mcp
+npm install -g ddb-mcp
 ```
 
 From a local checkout:
@@ -43,7 +43,7 @@ npm run build
 Authenticate with D&D Beyond from a terminal you control:
 
 ```bash
-npx dndbeyond-mcp setup
+npx ddb-mcp setup
 ```
 
 This opens a browser window. Log in normally. The session cookie is saved to `~/.dndbeyond-mcp/config.json`. Do not share that file.
@@ -72,7 +72,7 @@ Read-only (recommended default):
   "mcpServers": {
     "dndbeyond": {
       "command": "npx",
-      "args": ["-y", "dndbeyond-mcp"],
+      "args": ["-y", "ddb-mcp"],
       "env": {
         "DDB_MCP_MODE": "read"
       }
@@ -88,7 +88,7 @@ Session play (HP, spell slots, rests):
   "mcpServers": {
     "dndbeyond": {
       "command": "npx",
-      "args": ["-y", "dndbeyond-mcp"],
+      "args": ["-y", "ddb-mcp"],
       "env": {
         "DDB_MCP_MODE": "session"
       }

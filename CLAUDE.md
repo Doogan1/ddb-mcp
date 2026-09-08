@@ -1,4 +1,4 @@
-# dndbeyond-mcp
+# ddb-mcp
 
 This file provides guidance when working with code in this repository.
 

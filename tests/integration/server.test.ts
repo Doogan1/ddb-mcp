@@ -30,7 +30,7 @@ function createTestServer(): { server: McpServer; client: DdbClient } {
   const client = new DdbClient(cache, circuitBreaker, rateLimiter);
 
   const server = new McpServer({
-    name: "dndbeyond-mcp",
+    name: "ddb-mcp",
     version: "0.1.0",
   });
 
