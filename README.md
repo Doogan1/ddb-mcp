@@ -19,6 +19,18 @@ This repository continues that MCP server. It does **not** include personal vaul
 - **Optional builder tools** — Create/update/delete characters (off by default; delete requires confirmation)
 - **Browser-based auth** — Playwright login flow; run it yourself, not through the agent
 
+## Prerequisites
+
+- **Node.js 20+** and npm
+- **git**
+- **Google Chrome** — the login flow launches real Chrome (not Playwright's bundled Chromium), so it needs to already be installed:
+  - Debian/Ubuntu: download the `.deb` from [google.com/chrome](https://www.google.com/chrome/) or add Google's apt repo
+  - Fedora: `sudo dnf install google-chrome-stable` (after enabling Google's repo, or via the RPM from their site)
+  - macOS: `brew install --cask google-chrome`
+  - Windows: `winget install Google.Chrome`
+
+If you're being walked through this by an AI coding agent, see [CLAUDE.md](CLAUDE.md) — it has the exact command sequence for a fresh setup.
+
 ## Installation
 
 ```bash
@@ -34,19 +46,33 @@ npm install -g ddb-mcp
 From a local checkout:
 
 ```bash
+git clone https://github.com/Doogan1/ddb-mcp.git
+cd ddb-mcp
 npm install
+npx playwright install chromium
 npm run build
 ```
 
 ## Setup
 
-Authenticate with D&D Beyond from a terminal you control:
+Authenticate with D&D Beyond from a terminal you control — this step is interactive and opens a real, visible browser window, so it can't be run through an agent's sandboxed shell or a headless server:
 
 ```bash
 npx ddb-mcp setup
 ```
 
-This opens a browser window. Log in normally. The session cookie is saved to `~/.dndbeyond-mcp/config.json`. Do not share that file.
+Log in normally in the browser window that opens. The session cookie is saved to `~/.dndbeyond-mcp/config.json`. Do not share that file — see [Securing your credentials](#securing-your-credentials) below.
+
+Once connected to an MCP client, verify the session with the `check_auth` tool.
+
+### Securing your credentials
+
+`~/.dndbeyond-mcp/config.json` holds your D&D Beyond session cookie — anyone with read access to it has access to your D&D Beyond account. The directory isn't created with restrictive permissions by default, so lock it down after your first `npm run setup`:
+
+```bash
+chmod 700 ~/.dndbeyond-mcp
+chmod 600 ~/.dndbeyond-mcp/config.json
+```
 
 ## Tool access modes
 
@@ -100,6 +126,27 @@ Session play (HP, spell slots, rests):
 From a local build, point `command` at `node` and `args` at `build/src/index.js`.
 
 Restart the client after changing the config.
+
+## Claude Code configuration
+
+From a local checkout, register the server with the [Claude Code CLI](https://code.claude.com/docs/en/mcp) instead of hand-editing a JSON file:
+
+```bash
+claude mcp add ddb-mcp -s user -e DDB_MCP_MODE=read -- node /absolute/path/to/ddb-mcp/build/src/index.js
+```
+
+- `-s user` registers it for every project, not just the current directory. Use `-s local` (the default) to scope it to one project instead.
+- `-e DDB_MCP_MODE=session` (or `builder`) instead of `read` to enable write tools, same modes as above.
+- The path after `--` must be absolute and point at your own local build — `node build/src/index.js` alone only works if Claude Code's working directory happens to be this repo.
+
+Verify it's connected:
+
+```bash
+claude mcp list
+claude mcp get ddb-mcp
+```
+
+If this repo's own `.mcp.json` still points at someone else's absolute path (e.g. from cloning a fork), either fix that path to your own, or remove/ignore it if you're using `-s user` registration instead — a stale project-scoped entry and a user-scoped entry pointing at different paths will conflict.
 
 ## Tools
 
@@ -155,6 +202,22 @@ Login is a CLI command (`npm run setup`), not an agent tool.
 This server stores your D&D Beyond session cookie locally at `~/.dndbeyond-mcp/config.json`. That cookie provides access to your D&D Beyond account. Never share it. The server only communicates with `dndbeyond.com` domains.
 
 D&D Beyond may restrict unofficial clients. Prefer `read` mode. Do not bulk-export catalogs you do not own. Monster lookups honor D&D Beyond `accessType` flags; unowned stat blocks stay stubbed.
+
+## Troubleshooting
+
+**`sudo: a terminal is required to read the password`** — if an AI agent is helping you install prerequisites, it can't supply your `sudo` password interactively. Run the install command yourself in your own terminal, then let the agent continue.
+
+**Playwright complains it can't find a browser** — the bundled Chromium download is separate from `npm install`. Run:
+
+```bash
+npx playwright install chromium
+```
+
+**The login browser window won't open, or `npm run setup` hangs** — the login flow launches a real, visible browser window (`headless: false`), so it needs an actual display. It won't work over a plain SSH session without X forwarding, inside most containers, or through an agent's sandboxed shell. Run it directly in a terminal on a machine with a screen.
+
+**`npm run setup` fails immediately with a browser launch error** — confirm real Google Chrome is installed (`google-chrome --version` or `google-chrome-stable --version`), not just Playwright's Chromium; see [Prerequisites](#prerequisites).
+
+**Claude Code shows the server as disconnected, or tools from a stale path** — check for a conflict between this repo's own `.mcp.json` (project scope) and a `-s user` registration; see the note at the end of [Claude Code configuration](#claude-code-configuration).
 
 ## License
 

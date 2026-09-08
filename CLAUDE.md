@@ -2,6 +2,21 @@
 
 This file provides guidance when working with code in this repository.
 
+## Setting this up for a new user
+
+If a user asks you to help them get their own instance of this server running (e.g. a party member who cloned this repo), follow this sequence rather than improvising — it's the exact path that was validated end-to-end on a fresh machine.
+
+1. **Check prerequisites**: `git --version`, `node --version` (need ≥20), `npm --version`. If any are missing, identify the user's OS/package manager and give them the exact install command — **do not run `sudo` yourself**; it requires an interactive password prompt you can't supply. Tell the user to run it in their own terminal and let you know when it's done.
+2. **Install and build**: `npm install`, `npm run build`.
+3. **Playwright browser**: `npx playwright install chromium`.
+4. **Real Chrome**: `setup/auth-flow.ts` launches with `channel: "chrome"`, which requires actual Google Chrome, not just Playwright's bundled Chromium. Check with `google-chrome --version` or `google-chrome-stable --version`; if missing, this also needs `sudo` — same rule as step 1, hand it to the user.
+5. **Run `npm run setup`**: this opens a real, visible browser window on the user's machine. Tell them what to expect (log in normally, the window closes itself once auth succeeds) and then wait — do not attempt to script or intercept this step; it's designed to be interactive and keep the user's credentials off any process you control.
+6. **Lock down credentials**: `chmod 700 ~/.dndbeyond-mcp && chmod 600 ~/.dndbeyond-mcp/config.json`. The directory isn't created with restrictive permissions by default.
+7. **Register with their MCP client.** For Claude Code: `claude mcp add ddb-mcp -s user -- node <absolute-path-to-repo>/build/src/index.js` (use `-e DDB_MCP_MODE=session` etc. if they want write tools). Check whether this repo's own `.mcp.json` has a stale absolute path from a previous clone — if so, either fix it to the user's actual path or note that it may conflict with a `-s user` registration.
+8. **Verify**: `claude mcp list` should show it connected; a `check_auth` tool call should confirm the session is valid.
+
+See [README.md](README.md) for the full user-facing version of this, including per-OS prerequisite install commands and a troubleshooting section.
+
 ## Build & Test Commands
 
 ```bash
